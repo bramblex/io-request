@@ -1,0 +1,36 @@
+{
+  "name": "io-request",
+  "version": "0.0.1",
+  "description": "https://github.com/bramblex/io-request.git",
+  "main": "index.js",
+  "scripts": {
+    "test": "node test/test.js",
+    "build": "cd src && $(npm bin)/babel *.js --out-dir ../dist",
+    "all": "npm run build && npm run test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bramblex/io-request.git"
+  },
+  "keywords": [
+    "fsm"
+  ],
+  "author": "bramblex (qjnight@gmail.com)",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/bramblex/io-request/issues"
+  },
+  "homepage": "https://github.com/bramblex/io-request#readme",
+  "devDependencies": {
+    "babel": "^6.5.2",
+    "babel-cli": "^6.18.0",
+    "babel-preset-es2015": "^6.18.0",
+    "co": "^4.6.0",
+    "socket.io-client": "^1.7.2",
+    "socket.io": "^1.7.2"
+  },
+  "engines": {
+    "node": ">=6.9.1",
+    "npm": ">=3.10.8"
+  }
+}
