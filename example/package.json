@@ -4,7 +4,9 @@
   "main": "index.js",
   "license": "MIT",
   "dependencies": {
+    "co": "^4.6.0",
     "io-request": "^0.0.3",
+    "mz": "^2.6.0",
     "socket.io": "^1.7.2"
   }
 }

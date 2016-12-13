@@ -68,6 +68,7 @@
 	var utils = __webpack_require__(2);
 
 	var nextMessageId = utils.generateCounter();
+	var createPromise = utils.createPromise;
 
 	var IORequestError = __webpack_require__(3);
 
@@ -132,6 +133,18 @@
 	  }
 
 	  _createClass(IORequestClient, [{
+	    key: 'handle',
+	    value: function handle(method, handler) {
+	      this.methods[method] = handler;
+	      return this;
+	    }
+	  }, {
+	    key: 'remove',
+	    value: function remove(method) {
+	      delete this.methods[method];
+	      return this;
+	    }
+	  }, {
 	    key: 'ioRequest',
 	    value: function ioRequest(_ref4) {
 	      var _this2 = this;
@@ -144,31 +157,22 @@
 
 	      var socket = this.socket;
 	      var message_id = this.id + '_' + nextMessageId();
-	      return new Promise(function (resolve, reject) {
+
+	      var promise = createPromise(function () {
 	        socket.emit('io-request', { message_id: message_id, method: method, data: data });
-	        var result = { resolve: resolve, reject: reject };
-
-	        if (timeout) {
-	          result.timer = setTimeout(function () {
-	            reject(new IORequestError(IORequestError['TIMEOUT']));
-	            delete _this2.unresponsed[message_id];
-	          }, timeout);
-	        }
-
-	        _this2.unresponsed[message_id] = result;
 	      });
-	    }
-	  }, {
-	    key: 'handle',
-	    value: function handle(method, handler) {
-	      this.methods[method] = handler;
-	      return this;
-	    }
-	  }, {
-	    key: 'remove',
-	    value: function remove(method) {
-	      delete this.methods[method];
-	      return this;
+
+	      if (timeout) {
+	        promise.timer = setTimeout(function () {
+	          promise.reject(new IORequestError(IORequestError['TIMEOUT']));
+	          delete _this2.unresponsed[message_id];
+	        }, timeout);
+	      }
+
+	      this.unresponsed[message_id] = promise;
+	      promise.message_id = message_id;
+
+	      return promise;
 	    }
 	  }]);
 
@@ -184,6 +188,20 @@
 	 */
 	"use strict";
 
+	var createPromise = function createPromise(executor) {
+	  var __resolve__ = null,
+	      __reject__ = null;
+	  var promise = new Promise(function (resolve, reject) {
+	    __resolve__ = resolve;
+	    __reject__ = reject;
+	    executor(resolve, reject);
+	  });
+	  promise.resolve = __resolve__;
+	  promise.reject = __reject__;
+
+	  return promise;
+	};
+
 	var generateCounter = function generateCounter() {
 	  var next_count = 1;
 	  return function () {
@@ -191,7 +209,10 @@
 	  };
 	};
 
-	module.exports = { generateCounter: generateCounter };
+	module.exports = {
+	  generateCounter: generateCounter,
+	  createPromise: createPromise
+	};
 
 /***/ },
 /* 3 */

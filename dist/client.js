@@ -10,6 +10,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 var utils = require('./utils');
 
 var nextMessageId = utils.generateCounter();
+var createPromise = utils.createPromise;
 
 var IORequestError = require('./error');
 
@@ -74,6 +75,18 @@ module.exports = function () {
   }
 
   _createClass(IORequestClient, [{
+    key: 'handle',
+    value: function handle(method, handler) {
+      this.methods[method] = handler;
+      return this;
+    }
+  }, {
+    key: 'remove',
+    value: function remove(method) {
+      delete this.methods[method];
+      return this;
+    }
+  }, {
     key: 'ioRequest',
     value: function ioRequest(_ref4) {
       var _this2 = this;
@@ -86,31 +99,22 @@ module.exports = function () {
 
       var socket = this.socket;
       var message_id = this.id + '_' + nextMessageId();
-      return new Promise(function (resolve, reject) {
+
+      var promise = createPromise(function () {
         socket.emit('io-request', { message_id: message_id, method: method, data: data });
-        var result = { resolve: resolve, reject: reject };
-
-        if (timeout) {
-          result.timer = setTimeout(function () {
-            reject(new IORequestError(IORequestError['TIMEOUT']));
-            delete _this2.unresponsed[message_id];
-          }, timeout);
-        }
-
-        _this2.unresponsed[message_id] = result;
       });
-    }
-  }, {
-    key: 'handle',
-    value: function handle(method, handler) {
-      this.methods[method] = handler;
-      return this;
-    }
-  }, {
-    key: 'remove',
-    value: function remove(method) {
-      delete this.methods[method];
-      return this;
+
+      if (timeout) {
+        promise.timer = setTimeout(function () {
+          promise.reject(new IORequestError(IORequestError['TIMEOUT']));
+          delete _this2.unresponsed[message_id];
+        }, timeout);
+      }
+
+      this.unresponsed[message_id] = promise;
+      promise.message_id = message_id;
+
+      return promise;
     }
   }]);
 

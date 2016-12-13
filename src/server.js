@@ -7,6 +7,7 @@ const utils = require('./utils')
 
 const nextClientId = utils.generateCounter()
 const nextMessageId = utils.generateCounter()
+const createPromise = utils.createPromise
 
 const IORequestError = require('./error')
 
@@ -71,19 +72,21 @@ module.exports = class IORequestServer {
 
   ioRequest (socket, {method, data = null, timeout = 0}) {
     const message_id = nextMessageId()
-    return new Promise((resolve, reject) => {
-      socket.emit('io-request', {message_id, method, data})
-      const result = {resolve, reject}
-
-      if (timeout) {
-        result.timer = setTimeout(() => {
-          // @TODO error
-          reject(new IORequestError(IORequestError['TIMEOUT']))
-          delete this.unresponsed[message_id]
-        }, timeout)
-      }
-      this.unresponsed[message_id] = result
+    const promise = createPromise(() => {
+        socket.emit('io-request', {message_id, method, data})
     })
+
+    if (timeout) {
+      promise.timer = setTimeout(() => {
+        promise.reject(new IORequestError(IORequestError['TIMEOUT']))
+        delete this.unresponsed[message_id]
+      }, timeout)
+    }
+
+    this.unresponsed[message_id] = promise
+    promise.message_id = message_id
+
+    return promise
   }
 
 }

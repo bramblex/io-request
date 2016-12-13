@@ -11,6 +11,7 @@ var utils = require('./utils');
 
 var nextClientId = utils.generateCounter();
 var nextMessageId = utils.generateCounter();
+var createPromise = utils.createPromise;
 
 var IORequestError = require('./error');
 
@@ -104,19 +105,21 @@ module.exports = function () {
           timeout = _ref3$timeout === undefined ? 0 : _ref3$timeout;
 
       var message_id = nextMessageId();
-      return new Promise(function (resolve, reject) {
+      var promise = createPromise(function () {
         socket.emit('io-request', { message_id: message_id, method: method, data: data });
-        var result = { resolve: resolve, reject: reject };
-
-        if (timeout) {
-          result.timer = setTimeout(function () {
-            // @TODO error
-            reject(new IORequestError(IORequestError['TIMEOUT']));
-            delete _this2.unresponsed[message_id];
-          }, timeout);
-        }
-        _this2.unresponsed[message_id] = result;
       });
+
+      if (timeout) {
+        promise.timer = setTimeout(function () {
+          promise.reject(new IORequestError(IORequestError['TIMEOUT']));
+          delete _this2.unresponsed[message_id];
+        }, timeout);
+      }
+
+      this.unresponsed[message_id] = promise;
+      promise.message_id = message_id;
+
+      return promise;
     }
   }]);
 
