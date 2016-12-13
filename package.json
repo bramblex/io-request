@@ -5,9 +5,9 @@
   "main": "index.js",
   "scripts": {
     "test": "node test/test.js",
-    "build": "cd src && $(npm bin)/babel *.js --out-dir ../dist",
+    "build": "cd src && $(npm bin)/babel *.js --out-dir ../dist && npm run build-browser",
     "build-browser": "$(npm bin)/webpack browser-index.js dist/browser/io-request-client.js",
-    "all": "npm run build && npm run build-browser && npm run test"
+    "all": "npm run build && npm run test"
   },
   "repository": {
     "type": "git",
