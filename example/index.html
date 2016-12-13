@@ -1,0 +1,62 @@
+<html>
+<head>
+ <title>猜拳游戏</title>
+ <script src="/io-request-client.js"></script>
+ <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+
+<h1>猜拳游戏</h1>
+<div id="choices" style="display:none;">
+ <button id="shi">石头</button>
+ <button id="jian">剪刀</button>
+ <button id="bu">布</button>
+</div>
+
+<pre id="msg-console"></pre>
+
+<script>
+
+  const msgLog = (msg) => {
+    const msg_console = document.getElementById('msg-console')
+    msg_console.innerText += '\n' + msg
+  }
+
+  const socket = io.connect('http://localhost:8080')
+  const ioReqClient = new IORequestClient(socket)
+
+  ioReqClient.handle('choice', ({response}) => {
+    const choices = document.getElementById('choices')
+    choices.style.display = 'block'
+
+    const shi = document.getElementById('shi')
+    const jian = document.getElementById('jian')
+    const bu = document.getElementById('bu')
+
+    shi.onclick = () => {
+      response(3)
+      choices.style.display = 'none'
+      msgLog('我出的是[石头]')
+    }
+
+    jian.onclick = () => {
+      response(2)
+      choices.style.display = 'none'
+      msgLog('我出的是[剪刀]')
+
+    }
+
+    bu.onclick = () => {
+      response(1)
+      choices.style.display = 'none'
+      msgLog('我出的是[布]')
+    }
+  })
+
+ socket.on('msg', msg => {
+   msgLog(msg)
+ })
+
+</script>
+</body>
+</html>
