@@ -1,0 +1,39 @@
+<html>
+<head>
+  <title>Test io-request in browser</title>
+  <script src="/io-request-client.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+
+<h1>Test io-request in browser</h1>
+<div id="msg-console">
+</div>
+
+<script>
+
+  const socket = io.connect('http://localhost:8080')
+  const ioReqClient = new IORequestClient(socket)
+
+  ioReqClient.handle('echo', ({response, data}) => {
+    response(data)
+  })
+
+  ioReqClient.handle('timeout', () => {})
+
+  ioReqClient.handle('reject', ({reject, data}) => {
+    reject({code: data.code, message: 'rejected'})
+  })
+
+  socket.on('io-connect', () => {
+    socket.ioRequest({method: 'testBrowserClient'})
+  })
+
+  socket.on('disconnect', () => {
+    socket.disconnect()
+    window.close()
+  })
+
+</script>
+</body>
+</html>

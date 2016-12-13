@@ -22,7 +22,6 @@ module.exports = function () {
 
     this.io = io;
 
-    this.sockets = {};
     this.methods = {};
     this.unresponsed = {};
 
@@ -32,7 +31,6 @@ module.exports = function () {
         var client_id = nextClientId();
         socket.emit('io-connect', { client_id: client_id });
         socket.client_id = client_id;
-        _this.sockets[client_id] = socket;
       });
 
       socket.on('io-request', function (_ref) {
@@ -69,13 +67,6 @@ module.exports = function () {
             promise.reject(new IORequestError(data));
           }
           delete _this.unresponsed[message_id];
-        }
-      });
-
-      socket.on('disconnect', function () {
-        var client_id = socket.client_id;
-        if (client_id) {
-          delete _this.sockets[client_id];
         }
       });
 

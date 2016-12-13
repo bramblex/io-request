@@ -5,12 +5,30 @@
 
 const co = require('co')
 const assert = require('assert')
+const fs = require('mz/fs')
+const open = require('open')
 
 const {IORequestServer, IORequestClient, IORequestError} = require('../index')
 
 
 // server
-const server = require('http').createServer()
+const server = require('http').createServer((request, response) => {
+  co(function *() {
+    if (request.url === "/") {
+      const index_file = yield fs.readFile(__dirname + '/index.html')
+      response.writeHead(200)
+      response.end(index_file)
+    } else if (request.url === "/io-request-client.js") {
+      const client_js = yield fs.readFile(__dirname + '/../dist/browser/io-request-client.js')
+      response.writeHead(200)
+      response.end(client_js)
+    } else {
+      response.writeHead(404)
+      response.end('404 NOT FOUND')
+    }
+  })
+})
+
 const io = require('socket.io')(server)
 
 const ioReqServer = new IORequestServer(io)
@@ -58,6 +76,41 @@ ioReqServer.handle('testClient', ({socket, response}) => {
   })
 })
 
+ioReqServer.handle('testBrowserClient', ({socket, response}) => {
+  co(function *() {
+
+    console.log('Test browser client echo data')
+    const {message} = yield socket.ioRequest({method: 'echo', data: {message: 'hello'}})
+    assert('hello' === message)
+
+    try {
+      console.log('Test browser client request timeout')
+      yield  socket.ioRequest({method: 'timeout', timeout: 10})
+    } catch (err) {
+      assert(err.code === IORequestError.TIMEOUT.code)
+    }
+
+    try {
+      console.log('Test browser client not handler found')
+      yield socket.ioRequest({method: 'notFound'})
+    } catch (err) {
+      assert(err.code === IORequestError.NOT_FOUND.code)
+    }
+
+    try {
+      console.log('Test browser client reject request')
+      yield socket.ioRequest(({method: 'reject', data: {code: 100}}))
+    } catch (err) {
+      assert(err.code === 100)
+    }
+
+    response()
+
+    console.log('Test accessed')
+    process.exit()
+  })
+})
+
 server.listen(8080, () => {
 
   // client
@@ -80,33 +133,33 @@ server.listen(8080, () => {
     co(function *() {
 
       console.log('Test server echo data')
-      const {message} = yield ioReqClient.ioRequest({method: 'echo', data: {message: 'hello'}})
+      const {message} = yield client.ioRequest({method: 'echo', data: {message: 'hello'}})
       assert('hello' === message)
 
       try {
         console.log('Test server request timeout')
-        yield  ioReqClient.ioRequest({method: 'timeout', timeout: 10})
+        yield  client.ioRequest({method: 'timeout', timeout: 10})
       } catch (err) {
         assert(err.code === IORequestError.TIMEOUT.code)
       }
 
       try {
         console.log('Test server not handler found')
-        yield ioReqClient.ioRequest({method: 'notFound'})
+        yield client.ioRequest({method: 'notFound'})
       } catch (err) {
         assert(err.code === IORequestError.NOT_FOUND.code)
       }
 
       try {
         console.log('Test server reject request')
-        yield ioReqClient.ioRequest(({method: 'reject', data: {code: 100}}))
+        yield client.ioRequest(({method: 'reject', data: {code: 100}}))
       } catch (err) {
         assert(err.code === 100)
       }
 
-      yield ioReqClient.ioRequest({method: 'testClient'})
-      console.log('Test accessed')
-      process.exit()
+      yield client.ioRequest({method: 'testClient'})
+
+      open('http://localhost:8080')
 
     })
 

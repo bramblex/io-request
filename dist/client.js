@@ -68,6 +68,9 @@ module.exports = function () {
     });
 
     socket.emit('io-connect');
+    socket.ioRequest = function () {
+      return _this.ioRequest.apply(_this, arguments);
+    };
   }
 
   _createClass(IORequestClient, [{
