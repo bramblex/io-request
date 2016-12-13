@@ -12,6 +12,8 @@ var utils = require('./utils');
 var nextClientId = utils.generateCounter();
 var nextMessageId = utils.generateCounter();
 
+var IORequestError = require('./error');
+
 module.exports = function () {
   function IORequestServer(io) {
     var _this = this;
@@ -48,6 +50,8 @@ module.exports = function () {
               return socket.emit('io-response', { success: false, message_id: message_id, data: error });
             }
           });
+        } else {
+          socket.emit('io-response', { success: false, message_id: message_id, data: IORequestError['NOT_FOUND'] });
         }
       });
 
@@ -62,7 +66,7 @@ module.exports = function () {
           if (success) {
             promise.resolve(data);
           } else {
-            promise.reject(data);
+            promise.reject(new IORequestError(data));
           }
           delete _this.unresponsed[message_id];
         }
@@ -116,7 +120,7 @@ module.exports = function () {
         if (timeout) {
           result.timer = setTimeout(function () {
             // @TODO error
-            reject(new Error('Timeout'));
+            reject(new IORequestError(IORequestError['TIMEOUT']));
             delete _this2.unresponsed[message_id];
           }, timeout);
         }

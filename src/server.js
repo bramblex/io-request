@@ -8,6 +8,8 @@ const utils = require('./utils')
 const nextClientId = utils.generateCounter()
 const nextMessageId = utils.generateCounter()
 
+const IORequestError = require('./error')
+
 module.exports = class IORequestServer {
 
   constructor (io) {
@@ -35,7 +37,10 @@ module.exports = class IORequestServer {
             reject: (error) =>
               socket.emit('io-response', {success: false, message_id, data: error})
           })
+        } else {
+          socket.emit('io-response', {success: false, message_id, data: IORequestError['NOT_FOUND']})
         }
+
       })
 
       socket.on('io-response', ({success, message_id, data}) => {
@@ -45,7 +50,7 @@ module.exports = class IORequestServer {
           if (success) {
             promise.resolve(data)
           } else {
-            promise.reject(data)
+            promise.reject(new IORequestError(data))
           }
           delete this.unresponsed[message_id]
         }
@@ -82,7 +87,7 @@ module.exports = class IORequestServer {
       if (timeout) {
         result.timer = setTimeout(() => {
           // @TODO error
-          reject(new Error('Timeout'))
+          reject(new IORequestError(IORequestError['TIMEOUT']))
           delete this.unresponsed[message_id]
         }, timeout)
       }
