@@ -38,13 +38,11 @@ module.exports = function () {
 
       var promise = _this.unresponsed[message_id];
       if (promise) {
-        clearTimeout(promise.timer);
         if (success) {
-          promise.resolve(data);
+          _this.__resolveResponse__(promise, data);
         } else {
-          promise.reject(new IORequestError(data));
+          _this.__rejectResponse__(promise, new IORequestError(data));
         }
-        delete _this.unresponsed[message_id];
       }
     });
 
@@ -89,8 +87,6 @@ module.exports = function () {
   }, {
     key: 'ioRequest',
     value: function ioRequest(_ref4) {
-      var _this2 = this;
-
       var method = _ref4.method,
           _ref4$data = _ref4.data,
           data = _ref4$data === undefined ? null : _ref4$data,
@@ -104,17 +100,43 @@ module.exports = function () {
         socket.emit('io-request', { message_id: message_id, method: method, data: data });
       });
 
+      this.__addResponse__(message_id, promise, timeout);
+      return promise;
+    }
+  }, {
+    key: '__resolveResponse__',
+    value: function __resolveResponse__(promise, data) {
+      promise.resolve(data);
+      this.__removeResponse__(promise);
+    }
+  }, {
+    key: '__rejectResponse__',
+    value: function __rejectResponse__(promise, data) {
+      promise.reject(data);
+      this.__removeResponse__(promise);
+    }
+  }, {
+    key: '__addResponse__',
+    value: function __addResponse__(message_id, promise) {
+      var _this2 = this;
+
+      var timeout = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 0;
+
+      promise.message_id = message_id;
       if (timeout) {
         promise.timer = setTimeout(function () {
-          promise.reject(new IORequestError(IORequestError['TIMEOUT']));
-          delete _this2.unresponsed[message_id];
+          _this2.__rejectResponse__(promise, new IORequestError(IORequestError['TIMEOUT']));
         }, timeout);
       }
-
       this.unresponsed[message_id] = promise;
-      promise.message_id = message_id;
-
-      return promise;
+    }
+  }, {
+    key: '__removeResponse__',
+    value: function __removeResponse__(promise) {
+      if (promise.timer) {
+        clearTimeout(promise.timer);
+      }
+      delete this.unresponsed[promise.message_id];
     }
   }]);
 

@@ -45,13 +45,11 @@ module.exports = class IORequestServer {
       socket.on('io-response', ({success, message_id, data}) => {
         const promise = this.unresponsed[message_id]
         if (promise) {
-          clearTimeout(promise.timer)
           if (success) {
-            promise.resolve(data)
+            this.__resolveResponse__(promise, data)
           } else {
-            promise.reject(new IORequestError(data))
+            this.__rejectResponse__(promise, new IORequestError(data))
           }
-          delete this.unresponsed[message_id]
         }
       })
 
@@ -66,7 +64,7 @@ module.exports = class IORequestServer {
   }
 
   remove (method) {
-    delete  this.methods[method]
+    delete this.methods[method]
     return this
   }
 
@@ -76,17 +74,36 @@ module.exports = class IORequestServer {
         socket.emit('io-request', {message_id, method, data})
     })
 
-    if (timeout) {
-      promise.timer = setTimeout(() => {
-        promise.reject(new IORequestError(IORequestError['TIMEOUT']))
-        delete this.unresponsed[message_id]
-      }, timeout)
-    }
-
-    this.unresponsed[message_id] = promise
-    promise.message_id = message_id
+    this.__addResponse__(message_id, promise, timeout)
 
     return promise
+  }
+
+  __resolveResponse__ (promise, data) {
+    promise.resolve(data)
+    this.__removeResponse__(promise)
+  }
+
+  __rejectResponse__ (promise, data) {
+    promise.reject(data)
+    this.__removeResponse__(promise)
+  }
+
+  __addResponse__ (message_id, promise, timeout = 0) {
+    promise.message_id = message_id
+    if (timeout) {
+      promise.timer = setTimeout(() => {
+        this.__rejectResponse__(promise, new IORequestError(IORequestError['TIMEOUT']))
+      }, timeout)
+    }
+    this.unresponsed[message_id] = promise
+  }
+
+  __removeResponse__ (promise) {
+    if (promise.timer) {
+      clearTimeout(promise.timer)
+    }
+    delete this.unresponsed[promise.message_id]
   }
 
 }
