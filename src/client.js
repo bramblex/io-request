@@ -49,6 +49,7 @@ module.exports = class IORequestClient {
     })
 
     socket.emit('io-connect')
+    socket.ioRequest = (...args) => this.ioRequest(...args)
   }
 
 

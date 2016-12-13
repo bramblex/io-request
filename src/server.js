@@ -15,7 +15,6 @@ module.exports = class IORequestServer {
   constructor (io) {
     this.io = io
 
-    this.sockets = {}
     this.methods = {}
     this.unresponsed = {}
 
@@ -25,7 +24,6 @@ module.exports = class IORequestServer {
         const client_id = nextClientId()
         socket.emit('io-connect', {client_id})
         socket.client_id = client_id
-        this.sockets[client_id] = socket
       })
 
       socket.on('io-request', ({message_id, method, data}) => {
@@ -53,13 +51,6 @@ module.exports = class IORequestServer {
             promise.reject(new IORequestError(data))
           }
           delete this.unresponsed[message_id]
-        }
-      })
-
-      socket.on('disconnect', () => {
-        const client_id = socket.client_id
-        if (client_id) {
-          delete this.sockets[client_id]
         }
       })
 
