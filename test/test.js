@@ -167,3 +167,8 @@ server.listen(8080, () => {
 
 })
 
+server.on('error', (err) => {
+  console.log(err)
+  process.exit(1)
+  console.log('Test not accessed')
+})
