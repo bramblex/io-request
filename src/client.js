@@ -50,7 +50,7 @@ module.exports = class IORequestClient {
 
   ioRequest ({method, data = null, timeout = 0}) {
     const socket = this.socket
-    const message_id = nextMessageId()
+    const message_id = `${this.id}_${nextMessageId()}`
     return new Promise((resolve, reject) => {
       socket.emit('io-request', {message_id, method, data})
       const result = {resolve, reject}

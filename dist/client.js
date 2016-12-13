@@ -72,7 +72,8 @@ module.exports = function () {
       var _this2 = this;
 
       var method = _ref4.method,
-          data = _ref4.data,
+          _ref4$data = _ref4.data,
+          data = _ref4$data === undefined ? null : _ref4$data,
           _ref4$timeout = _ref4.timeout,
           timeout = _ref4$timeout === undefined ? 0 : _ref4$timeout;
 
