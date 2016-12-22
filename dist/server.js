@@ -9,7 +9,6 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 var utils = require('./utils');
 
-var nextClientId = utils.generateCounter();
 var nextMessageId = utils.generateCounter();
 var createPromise = utils.createPromise;
 
@@ -27,12 +26,6 @@ module.exports = function () {
     this.unresponsed = {};
 
     this.io.on('connection', function (socket) {
-
-      socket.on('io-connect', function () {
-        var client_id = nextClientId();
-        socket.emit('io-connect', { client_id: client_id });
-        socket.client_id = client_id;
-      });
 
       socket.on('io-request', function (_ref) {
         var message_id = _ref.message_id,

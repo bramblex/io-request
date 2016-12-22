@@ -14,13 +14,8 @@ module.exports = class IORequestClient {
 
   constructor (socket) {
     this.socket = socket
-    this.id = null
     this.unresponsed = {}
     this.methods = {}
-
-    socket.on('io-connect', ({client_id}) => {
-      this.id = client_id
-    })
 
     socket.on('io-response', ({success, message_id, data}) => {
       const promise = this.unresponsed[message_id]
@@ -47,7 +42,6 @@ module.exports = class IORequestClient {
       }
     })
 
-    socket.emit('io-connect')
     socket.ioRequest = (...args) => this.ioRequest(...args)
   }
 
@@ -63,7 +57,7 @@ module.exports = class IORequestClient {
 
   ioRequest ({method, data = null, timeout = 0}) {
     const socket = this.socket
-    const message_id = `${this.id}_${nextMessageId()}`
+    const message_id = `${socket.id}_${nextMessageId()}`
 
     const promise = createPromise(() => {
       socket.emit('io-request', {message_id, method, data})

@@ -5,7 +5,6 @@
 
 const utils = require('./utils')
 
-const nextClientId = utils.generateCounter()
 const nextMessageId = utils.generateCounter()
 const createPromise = utils.createPromise
 
@@ -20,12 +19,6 @@ module.exports = class IORequestServer {
     this.unresponsed = {}
 
     this.io.on('connection', socket => {
-
-      socket.on('io-connect', () => {
-        const client_id = nextClientId()
-        socket.emit('io-connect', {client_id})
-        socket.client_id = client_id
-      })
 
       socket.on('io-request', ({message_id, method, data}) => {
         const handler = this.methods[method]

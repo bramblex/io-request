@@ -79,20 +79,13 @@
 	    _classCallCheck(this, IORequestClient);
 
 	    this.socket = socket;
-	    this.id = null;
 	    this.unresponsed = {};
 	    this.methods = {};
 
-	    socket.on('io-connect', function (_ref) {
-	      var client_id = _ref.client_id;
-
-	      _this.id = client_id;
-	    });
-
-	    socket.on('io-response', function (_ref2) {
-	      var success = _ref2.success,
-	          message_id = _ref2.message_id,
-	          data = _ref2.data;
+	    socket.on('io-response', function (_ref) {
+	      var success = _ref.success,
+	          message_id = _ref.message_id,
+	          data = _ref.data;
 
 	      var promise = _this.unresponsed[message_id];
 	      if (promise) {
@@ -104,10 +97,10 @@
 	      }
 	    });
 
-	    socket.on('io-request', function (_ref3) {
-	      var message_id = _ref3.message_id,
-	          method = _ref3.method,
-	          data = _ref3.data;
+	    socket.on('io-request', function (_ref2) {
+	      var message_id = _ref2.message_id,
+	          method = _ref2.method,
+	          data = _ref2.data;
 
 	      var handler = _this.methods[method];
 	      if (handler) {
@@ -124,7 +117,6 @@
 	      }
 	    });
 
-	    socket.emit('io-connect');
 	    socket.ioRequest = function () {
 	      return _this.ioRequest.apply(_this, arguments);
 	    };
@@ -144,15 +136,15 @@
 	    }
 	  }, {
 	    key: 'ioRequest',
-	    value: function ioRequest(_ref4) {
-	      var method = _ref4.method,
-	          _ref4$data = _ref4.data,
-	          data = _ref4$data === undefined ? null : _ref4$data,
-	          _ref4$timeout = _ref4.timeout,
-	          timeout = _ref4$timeout === undefined ? 0 : _ref4$timeout;
+	    value: function ioRequest(_ref3) {
+	      var method = _ref3.method,
+	          _ref3$data = _ref3.data,
+	          data = _ref3$data === undefined ? null : _ref3$data,
+	          _ref3$timeout = _ref3.timeout,
+	          timeout = _ref3$timeout === undefined ? 0 : _ref3$timeout;
 
 	      var socket = this.socket;
-	      var message_id = this.id + '_' + nextMessageId();
+	      var message_id = socket.id + '_' + nextMessageId();
 
 	      var promise = createPromise(function () {
 	        socket.emit('io-request', { message_id: message_id, method: method, data: data });

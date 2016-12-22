@@ -1,6 +1,6 @@
 {
   "name": "io-request",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "https://github.com/bramblex/io-request.git",
   "main": "index.js",
   "scripts": {

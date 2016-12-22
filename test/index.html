@@ -25,7 +25,7 @@
     reject({code: data.code, message: 'rejected'})
   })
 
-  socket.on('io-connect', () => {
+  socket.on('connect', () => {
     socket.ioRequest({method: 'testBrowserClient'})
   })
 
