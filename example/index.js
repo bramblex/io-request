@@ -74,14 +74,12 @@ class Game {
 
 io.on('connection', socket => {
 
-  socket.on('io-connect', () => {
-    pair.push(socket)
-    if (pair.length === 2){
-      const [left, right] = pair
-      new Game(left, right)
-      pair = []
-    }
-  })
+  pair.push(socket)
+  if (pair.length === 2){
+    const [left, right] = pair
+    new Game(left, right)
+    pair = []
+  }
 
 })
 
